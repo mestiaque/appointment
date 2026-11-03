@@ -26,7 +26,7 @@ use ME\Http\Middleware\LocaleMiddleware;
 Route::group([
     'prefix' => trim(me_prefix().'/'.config('abs.admin_path', 'booking'), '/'),
     'as' => 'abs.',
-    'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog'],
+    'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog', 'abs.headers'],
 ], function () {
     Route::get('/businesses', [BusinessController::class, 'index'])->middleware('authorization:abs_business.view')->name('businesses.index');
     Route::get('/businesses/create', [BusinessController::class, 'create'])->middleware('authorization:abs_business.create')->name('businesses.create');

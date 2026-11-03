@@ -31,6 +31,18 @@ class ManualBookingTest extends TestCase
             ->assertSee('09:00 AM');
     }
 
+    public function test_times_that_already_passed_today_are_not_offered(): void
+    {
+        CarbonImmutable::setTestNow('2026-10-26 12:05:00'); // Monday, 12:05 UTC
+        [$business, $service] = $this->bookableBusiness(['slot_interval_minutes' => 60]);
+        $this->actingInBusiness($this->member($business), $business);
+
+        Livewire::test(ManualBooking::class)
+            ->set('serviceId', $service->id)
+            ->assertDontSee('11:00 AM')->assertDontSee('12:00 PM')
+            ->assertSee('01:00 PM');
+    }
+
     public function test_staff_creates_a_booking_and_missing_time_has_a_clear_message(): void
     {
         CarbonImmutable::setTestNow('2026-10-26 06:00:00');

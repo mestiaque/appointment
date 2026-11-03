@@ -182,6 +182,22 @@ class PublicBookingTest extends TestCase
         $wizard->call('goToStep', 3)->assertSet('step', 3)->call('goToStep', 6)->assertSet('step', 3);
     }
 
+    public function test_customer_details_are_validated(): void
+    {
+        [$business, $service, $staff] = $this->bookableBusiness(['slot_interval_minutes' => 60, 'require_customer_phone' => true]);
+        $wizard = Livewire::test(BookingWizard::class, ['business' => $business])
+            ->call('chooseService', $service->id)->call('chooseStaff', (string) $staff->id)
+            ->call('chooseDate', '2026-11-02')->call('chooseSlot', '2026-11-02T09:00:00Z');
+
+        $wizard->set('name', '')->set('email', 'not-an-email')->set('phone', '')->call('toSummary')
+            ->assertHasErrors(['name' => 'required', 'email', 'phone' => 'required'])->assertSet('step', 5);
+        $wizard->set('name', str_repeat('a', 151))->set('email', 'ok@example.com')->set('phone', 'call me maybe')->call('toSummary')
+            ->assertHasErrors(['name' => 'max', 'phone' => 'regex']);
+        $wizard->set('name', 'Valid Name')->set('phone', '+880 1711-000000')->set('notes', str_repeat('n', 1001))->call('toSummary')
+            ->assertHasErrors(['notes' => 'max']);
+        $wizard->set('notes', '')->call('toSummary')->assertHasNoErrors()->assertSet('step', 6);
+    }
+
     public function test_booking_rate_limit(): void
     {
         config(['abs.rate_limits.booking' => 2]);

@@ -23,7 +23,7 @@ All gateways return to `/book/pay/{payment}/{token}/callback`. The token is an H
 | Stripe Checkout (hosted page): full payment, deposit, balance | Implemented. Tested with HTTP fakes and real HMAC signatures. **Not verified against live or test Stripe accounts.** |
 | Stripe refunds (full or partial) through the API plus webhooks | Implemented as above, not verified live |
 | PayPal Checkout (Orders v2): capture after approval, refunds, verified webhooks | Implemented. Tested with HTTP fakes. **Not verified against a PayPal sandbox or live account.** |
-| Local providers (bKash, SSLCommerz, Razorpay …) | **Not implemented.** Add a class that implements `ME\Abs\Payments\PaymentGateway` and register it with `GatewayManager::extend()` |
+| bKash, Nagad, SSLCommerz | Implemented, see above. Other providers: add a class that implements `ME\Abs\Payments\PaymentGateway` and register it with `GatewayManager::extend()` |
 
 Card data never reaches the server, because Stripe hosts the card form. The server stores provider ids and amounts only.
 

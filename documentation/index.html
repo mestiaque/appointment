@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABS Documentation</title>
+<style>
+:root {
+  --bg: #f6f8fb; --panel: #ffffff; --text: #1f2937; --muted: #6b7280; --line: #e5e7eb;
+  --brand: #2563eb; --brand-soft: #eff6ff; --code: #0f172a; --code-text: #e2e8f0; --warn: #fff7ed; --warn-line: #fdba74;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1120; --panel: #111827; --text: #e5e7eb; --muted: #9ca3af; --line: #1f2937;
+    --brand: #60a5fa; --brand-soft: #172554; --code: #020617; --code-text: #e2e8f0; --warn: #2a1a0a; --warn-line: #9a3412;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); }
+nav { position: fixed; inset: 0 auto 0 0; width: 270px; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 24px 16px; }
+nav .logo { font-weight: 700; font-size: 18px; margin: 0 8px 4px; }
+nav .ver { color: var(--muted); font-size: 13px; margin: 0 8px 20px; }
+nav a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 15px; }
+nav a:hover, nav a.on { background: var(--brand-soft); color: var(--brand); }
+nav .group { margin: 16px 10px 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+main { margin-left: 270px; padding: 40px 48px 80px; max-width: 1100px; }
+h1 { font-size: 34px; margin: 0 0 8px; }
+h2 { font-size: 26px; margin: 56px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+h3 { font-size: 19px; margin: 28px 0 8px; }
+p.lead { font-size: 18px; color: var(--muted); }
+a { color: var(--brand); }
+code { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--brand-soft); padding: 1px 6px; border-radius: 5px; }
+pre { background: var(--code); color: var(--code-text); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; background: var(--panel); border-radius: 10px; overflow: hidden; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--brand-soft); }
+.note { background: var(--warn); border-left: 4px solid var(--warn-line); padding: 12px 16px; border-radius: 8px; margin: 16px 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin: 16px 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.card b { display: block; margin-bottom: 4px; }
+figure { margin: 20px 0; }
+figure img { width: 100%; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,.08); cursor: zoom-in; }
+figcaption { color: var(--muted); font-size: 14px; margin-top: 6px; }
+.phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+ol li, ul li { margin: 4px 0; }
+#zoom { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 9; cursor: zoom-out; }
+#zoom img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+#menu { display: none; }
+@media (max-width: 900px) {
+  nav { transform: translateX(-100%); transition: transform .2s; z-index: 5; }
+  nav.open { transform: none; }
+  main { margin: 0; padding: 64px 16px 60px; }
+  #menu { display: block; position: fixed; top: 12px; left: 12px; z-index: 6; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; font-size: 15px; }
+  table { display: block; overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<button id="menu" type="button">☰ Menu</button>
+<nav id="nav">
+  <div class="logo">ABS Booking</div>
+  <div class="ver">Version 1.0.0 · Documentation</div>
+  <div class="group">Start</div>
+  <a href="#overview">Overview</a>
+  <a href="#features">Features</a>
+  <a href="#requirements">Requirements</a>
+  <a href="#installation">Installation</a>
+  <a href="#first-setup">First setup</a>
+  <a href="#cron">Cron and queue</a>
+  <div class="group">Using it</div>
+  <a href="#booking">Public booking</a>
+  <a href="#customer">Customer panel</a>
+  <a href="#admin">Admin panel</a>
+  <a href="#hours">Staff hours</a>
+  <a href="#payments">Payment gateways</a>
+  <a href="#notifications">Notifications</a>
+  <a href="#roles">Roles</a>
+  <div class="group">Reference</div>
+  <a href="#urls">URLs</a>
+  <a href="#env">Environment keys</a>
+  <a href="#updating">Updating</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+  <a href="#faq">FAQ</a>
+  <a href="#credits">Credits and support</a>
+</nav>
+
+<main>
+<section id="overview">
+  <h1>ABS — Appointment Booking System</h1>
+  <p class="lead">Online appointment booking for clinics, doctors' chambers, salons, consultants and any service business. Built on Laravel, with an admin panel, a public booking page, a customer panel, and online payments through bKash, Nagad, SSLCommerz, Stripe and PayPal.</p>
+  <p>Thank you for your purchase. This page explains how to install, set up and use the system. If something is not covered here, see <a href="#credits">support</a>.</p>
+  <figure><img src="assets/screenshots/04-booking-time.png" alt="Booking wizard: choosing a time"><figcaption>The public booking page: the customer picks a day and a free time.</figcaption></figure>
+</section>
+
+<section id="features">
+  <h2>Features</h2>
+  <div class="cards">
+    <div class="card"><b>Several businesses</b>Each business has its own branches, timezone, currency, staff, services and settings.</div>
+    <div class="card"><b>No double booking</b>A doctor's time booked by one person cannot be booked by anyone else, even when two people press "Confirm" at the same moment.</div>
+    <div class="card"><b>Smart time slots</b>Working hours, breaks, time off, holidays, buffers, minimum notice and booking window are all respected.</div>
+    <div class="card"><b>Calendar</b>Colour per staff member, drag and drop to reschedule, quick status actions, click an empty slot to book.</div>
+    <div class="card"><b>Customer panel</b>Booking history, details, reschedule, cancel, print slip, pay online, download prescriptions and reports.</div>
+    <div class="card"><b>Find booking</b>Anyone can open their booking with the booking number and phone number, with an optional SMS code.</div>
+    <div class="card"><b>Online payments</b>bKash, Nagad, SSLCommerz, Stripe and PayPal, set up per business from the admin panel.</div>
+    <div class="card"><b>Payments and refunds</b>Deposits, partial payments, cash at the counter, discounts, refunds and invoices.</div>
+    <div class="card"><b>Notifications</b>E-mail on every change and reminders before the visit. Optional SMS.</div>
+    <div class="card"><b>Reports</b>Bookings, revenue, staff utilisation and cancellations, with CSV export.</div>
+    <div class="card"><b>Roles</b>Owner, Manager, Receptionist and Staff. A staff member sees only their own appointments.</div>
+    <div class="card"><b>Mobile friendly</b>The booking page and customer panel are designed for phones first.</div>
+  </div>
+</section>
+
+<section id="requirements">
+  <h2>Requirements</h2>
+  <table>
+    <tr><th>Item</th><th>Version</th></tr>
+    <tr><td>PHP</td><td>8.3 or newer, with <code>pdo_mysql</code>, <code>mbstring</code>, <code>openssl</code>, <code>json</code>, <code>fileinfo</code>, <code>zip</code> (<code>intl</code> recommended)</td></tr>
+    <tr><td>Database</td><td>MySQL 8.0+ or MariaDB 10.6+</td></tr>
+    <tr><td>Framework</td><td>Laravel 13, Livewire 4 (included)</td></tr>
+    <tr><td>Admin theme</td><td>metheme (included in the ready-made application)</td></tr>
+    <tr><td>Server</td><td>Composer 2, SSH access, a cron entry, a queue worker, HTTPS</td></tr>
+  </table>
+  <div class="note">Shared hosting without SSH and cron is not supported. Reminders and e-mails need the cron entry and the queue worker.</div>
+</section>
+
+<section id="installation">
+  <h2>Installation</h2>
+  <h3>1. Upload and install packages</h3>
+  <p>Upload the <code>app</code> and <code>abs</code> folders to your server, side by side. Then:</p>
+<pre><code>cd app
+cp .env.example .env
+composer install --no-dev --optimize-autoloader
+php artisan key:generate</code></pre>
+
+  <h3>2. Create a database and edit <code>.env</code></h3>
+  <p>Create an empty MySQL database, then set:</p>
+<pre><code>APP_NAME="Appointment Booking"
+APP_URL=https://booking.example.com
+DB_DATABASE=abs
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+QUEUE_CONNECTION=database
+METHEME_HOME_ROUTE=abs.dashboard</code></pre>
+  <div class="note"><code>APP_URL</code> must be exactly the address people use (https, with or without www). Booking links are signed and fail with any other address.</div>
+
+  <h3>3. Create the tables</h3>
+<pre><code>php artisan migrate --force
+php artisan db:seed --force
+php artisan vendor:publish --tag=metheme-assets
+php artisan abs:install
+php artisan storage:link
+php artisan optimize</code></pre>
+  <p>Optional demo data (a clinic with 6 doctors and sample bookings), only on an empty system:</p>
+<pre><code>php artisan abs:install --clinic-demo</code></pre>
+
+  <h3>4. Web server</h3>
+  <p>Point the domain's document root to <code>app/public</code>. Make <code>app/storage</code> and <code>app/bootstrap/cache</code> writable by the web server user.</p>
+<pre><code># Nginx (inside the server block)
+root /var/www/app/public;
+index index.php;
+location / { try_files $uri $uri/ /index.php?$query_string; }
+location ~ \.php$ { include fastcgi_params; fastcgi_pass unix:/run/php/php8.3-fpm.sock; fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name; }</code></pre>
+  <p>Apache works with the included <code>public/.htaccess</code> (enable <code>mod_rewrite</code>).</p>
+
+  <h3>5. Sign in</h3>
+  <p>Open <code>https://your-domain/login</code> with <code>admin@mestiaque.com</code> / <code>p@ssword</code>.</p>
+  <div class="note"><b>Change this password immediately</b> (top-right menu → Profile), or create your own admin and delete this account. The default password is public.</div>
+</section>
+
+<section id="first-setup">
+  <h2>First setup</h2>
+  <ol>
+    <li><b>Users &amp; Roles → Users</b>: create accounts for the owner, receptionists and doctors/staff.</li>
+    <li><b>Business → Businesses → Add</b>: name, web address (slug), timezone, currency, phone and address.</li>
+    <li><b>Business → Members</b>: add the users to the business as owner, manager, receptionist or staff.</li>
+    <li><b>Catalog &amp; Staff → Categories</b> and <b>Services</b>: duration, price, buffer time.</li>
+    <li><b>Catalog &amp; Staff → Staff</b>: add each doctor, choose their services and link their user account.</li>
+    <li>Open each staff member's <b>Hours</b> page and set the weekly schedule (see <a href="#hours">Staff hours</a>).</li>
+    <li><b>Business → Booking Settings</b>: approval, time-slot step, minimum notice, how far ahead, cancellation rules, payment mode.</li>
+    <li><b>Configuration → Mail Configuration</b>: your SMTP details.</li>
+    <li>Optional: <a href="#payments">payment gateways</a>.</li>
+    <li>Share your booking link: <code>https://your-domain/book/your-slug</code>.</li>
+  </ol>
+  <figure><img src="assets/screenshots/24-admin-booking-settings.png" alt="Booking settings"><figcaption>Booking Settings: approval, booking window, cancellation rules and payment mode.</figcaption></figure>
+  <figure><img src="assets/screenshots/18-admin-services.png" alt="Services"><figcaption>Services with duration, price and category.</figcaption></figure>
+</section>
+
+<section id="cron">
+  <h2>Cron and queue</h2>
+  <p>Add one cron entry (<code>crontab -e</code>):</p>
+<pre><code>* * * * * cd /var/www/app &amp;&amp; php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1</code></pre>
+  <p>Keep a queue worker running with Supervisor:</p>
+<pre><code>[program:abs-worker]
+command=php /var/www/app/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+user=www-data
+stopwaitsecs=3600</code></pre>
+  <p>The scheduler sends reminders (<code>abs:send-reminders</code>) and releases unpaid time slots (<code>abs:expire-holds</code>). The <b>Diagnostics</b> page in the admin panel shows whether both are working.</p>
+</section>
+
+<section id="booking">
+  <h2>Public booking</h2>
+  <p>Customers book in six short steps. Steps with only one choice are skipped automatically. The summary on the right updates as they go.</p>
+  <figure><img src="assets/screenshots/02-booking-service.png" alt="Choose service"><figcaption>Step 2: choose a service, with search and categories.</figcaption></figure>
+  <figure><img src="assets/screenshots/03-booking-staff.png" alt="Choose staff"><figcaption>Step 3: choose a doctor, or "any available".</figcaption></figure>
+  <figure><img src="assets/screenshots/04-booking-time.png" alt="Choose time"><figcaption>Step 4: only free times are shown, in the business's timezone.</figcaption></figure>
+  <figure><img src="assets/screenshots/05-booking-confirm.png" alt="Confirm"><figcaption>Step 6: review, choose how to pay, confirm.</figcaption></figure>
+  <h3>Find a booking</h3>
+  <p>Anyone can open their booking from <code>/book/find</code> with the booking number and the phone number used on the booking. The business can also require a one-time SMS code.</p>
+  <figure><img src="assets/screenshots/06-find-booking.png" alt="Find booking"><figcaption>Find a booking by number and phone.</figcaption></figure>
+  <h3>On a phone</h3>
+  <div class="phones">
+    <figure><img src="assets/screenshots/20-mobile-booking-service.png" alt="Mobile service step"><figcaption>Choose a service</figcaption></figure>
+    <figure><img src="assets/screenshots/21-mobile-booking-time.png" alt="Mobile time step"><figcaption>Choose a time</figcaption></figure>
+    <figure><img src="assets/screenshots/22-mobile-my-bookings.png" alt="Mobile my bookings"><figcaption>My bookings</figcaption></figure>
+  </div>
+</section>
+
+<section id="customer">
+  <h2>Customer panel</h2>
+  <p>Customers can create an account at <code>/account/register</code>. Bookings made with the same e-mail address appear in their history. Customers never see the admin panel.</p>
+  <figure><img src="assets/screenshots/08-customer-my-bookings.png" alt="My bookings"><figcaption>My bookings: the full history. Click a booking to see its details.</figcaption></figure>
+  <figure><img src="assets/screenshots/09-customer-booking-details.png" alt="Booking details"><figcaption>Booking details: print slip, cancel, change the time, pay what is due, download prescriptions and reports.</figcaption></figure>
+  <figure><img src="assets/screenshots/10-booking-slip.png" alt="Booking slip"><figcaption>Printable booking slip.</figcaption></figure>
+</section>
+
+<section id="admin">
+  <h2>Admin panel</h2>
+  <figure><img src="assets/screenshots/11-admin-dashboard.png" alt="Dashboard"><figcaption>Dashboard: today's queue, upcoming bookings, revenue. Switch business at the top.</figcaption></figure>
+  <h3>Calendar</h3>
+  <p>Each doctor has a colour. Filter by doctor or status, drag an appointment to move it, click it for quick actions, click an empty time to book.</p>
+  <figure><img src="assets/screenshots/12-admin-calendar-week.png" alt="Calendar"><figcaption>Week view. Grey areas are outside working hours.</figcaption></figure>
+  <figure><img src="assets/screenshots/13-admin-calendar-quick-actions.png" alt="Quick actions"><figcaption>Quick actions: check in, start, cancel, no-show. Only actions allowed at that moment are shown.</figcaption></figure>
+  <h3>Appointments</h3>
+  <figure><img src="assets/screenshots/14-admin-appointments.png" alt="Appointment list"><figcaption>All appointments with search, filters and CSV export.</figcaption></figure>
+  <figure><img src="assets/screenshots/15-admin-appointment-detail.png" alt="Appointment detail"><figcaption>Appointment detail: status, history, payments, refunds, discount, invoice and document upload.</figcaption></figure>
+  <figure><img src="assets/screenshots/16-admin-new-booking.png" alt="New booking"><figcaption>New Booking for walk-ins and phone calls. Only free times are offered.</figcaption></figure>
+  <h3>Status workflow</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td>Awaiting payment</td><td>Online payment is required; the time is held until the hold expires.</td></tr>
+    <tr><td>Pending</td><td>Waiting for the owner's approval (when approval is on).</td></tr>
+    <tr><td>Confirmed</td><td>Booked.</td></tr>
+    <tr><td>Checked in / In progress</td><td>The customer has arrived / is being seen (only on the day).</td></tr>
+    <tr><td>Completed / No-show</td><td>After the start time.</td></tr>
+    <tr><td>Cancelled / Rejected / Expired</td><td>The time becomes free again.</td></tr>
+  </table>
+  <h3>Reports</h3>
+  <figure><img src="assets/screenshots/23-admin-reports.png" alt="Reports"><figcaption>Reports with date range and CSV export.</figcaption></figure>
+</section>
+
+<section id="hours">
+  <h2>Staff hours</h2>
+  <p>Open <b>Catalog &amp; Staff → Staff → Hours</b>. Add one or more time ranges per weekday (for example 10:00–13:00 and 17:00–20:00), breaks, and days off. Use <code>24:00</code> for "until midnight". Business-wide holidays are under <b>Business → Holidays</b>.</p>
+  <figure><img src="assets/screenshots/17-admin-staff-schedule.png" alt="Staff schedule"><figcaption>Weekly schedule editor.</figcaption></figure>
+</section>
+
+<section id="payments">
+  <h2>Payment gateways</h2>
+  <p>Open <b>Business → Payment Gateways</b>. For each gateway: enter the merchant keys, choose <i>Sandbox</i> or <i>Live</i>, switch it on and press <b>Test connection</b>. Then set <b>Booking Settings → Payment mode</b>.</p>
+  <figure><img src="assets/screenshots/19-admin-payment-gateways.png" alt="Payment gateways"><figcaption>Each business enters its own keys. Secrets are encrypted and never shown again.</figcaption></figure>
+  <table>
+    <tr><th>Gateway</th><th>Keys</th><th>Register at the gateway</th><th>Refunds</th></tr>
+    <tr><td>bKash</td><td>App key, App secret, Username, Password</td><td>Nothing</td><td>From the admin panel</td></tr>
+    <tr><td>Nagad</td><td>Merchant ID, Merchant private key, Nagad public key</td><td>Nothing</td><td>In the Nagad portal, then record it</td></tr>
+    <tr><td>SSLCommerz</td><td>Store ID, Store password</td><td>IPN URL shown on the page</td><td>From the admin panel</td></tr>
+    <tr><td>Stripe</td><td>Secret key, Webhook secret</td><td>Webhook URL shown on the page</td><td>From the admin panel</td></tr>
+    <tr><td>PayPal</td><td>Client ID, Secret, Webhook ID</td><td>Webhook URL shown on the page</td><td>From the admin panel</td></tr>
+  </table>
+  <h3>Payment modes</h3>
+  <ul>
+    <li><b>Pay later</b>: pay at the counter; staff record the payment.</li>
+    <li><b>Online optional</b>: customers may pay online now or later.</li>
+    <li><b>Full payment required</b> / <b>Deposit required</b>: the time is held until payment; unpaid holds are released automatically.</li>
+  </ul>
+  <h3>Safety</h3>
+  <ul>
+    <li>A payment is marked paid only after the server checks with the gateway and the amount matches.</li>
+    <li>bKash and Nagad accept BDT only, so they are hidden for businesses in other currencies.</li>
+    <li>If a payment arrives after the booking was cancelled or expired, it is refunded automatically.</li>
+  </ul>
+  <div class="note">Before going live, make one sandbox payment and one refund with your own merchant account. If you change <code>APP_KEY</code>, the saved gateway keys must be entered again.</div>
+</section>
+
+<section id="notifications">
+  <h2>Notifications</h2>
+  <p>E-mails are sent when a booking is made, confirmed, rescheduled, cancelled or paid, and as a reminder before the visit (reminder time is set in Booking Settings). Set SMTP in <b>Configuration → Mail Configuration</b>. To send SMS as well, set up metheme's SMS gateway and add <code>ABS_SMS_NOTIFICATIONS=true</code> to <code>.env</code>.</p>
+</section>
+
+<section id="roles">
+  <h2>Roles</h2>
+  <table>
+    <tr><th>Role</th><th>Can do</th></tr>
+    <tr><td>Booking Owner</td><td>Everything in their businesses: settings, gateways, refunds, reports.</td></tr>
+    <tr><td>Manager</td><td>Daily work and reports, not business settings.</td></tr>
+    <tr><td>Booking Receptionist</td><td>Book, reschedule, check in, take payments.</td></tr>
+    <tr><td>Booking Staff</td><td>Only their own appointments.</td></tr>
+    <tr><td>Customer</td><td>Customer panel only.</td></tr>
+  </table>
+  <p>A user needs both the role and a membership in the business (<b>Business → Members</b>).</p>
+</section>
+
+<section id="urls">
+  <h2>URLs</h2>
+  <table>
+    <tr><th>Address</th><th>Page</th></tr>
+    <tr><td><code>/</code>, <code>/book</code></td><td>List of businesses</td></tr>
+    <tr><td><code>/book/{slug}</code></td><td>Booking page of one business</td></tr>
+    <tr><td><code>/book/find</code></td><td>Find a booking</td></tr>
+    <tr><td><code>/account</code>, <code>/account/login</code>, <code>/account/register</code></td><td>Customer panel</td></tr>
+    <tr><td><code>/login</code>, <code>/admin/booking</code></td><td>Admin panel</td></tr>
+  </table>
+</section>
+
+<section id="env">
+  <h2>Environment keys</h2>
+  <table>
+    <tr><th>Key</th><th>Default</th><th>Meaning</th></tr>
+    <tr><td><code>ABS_ADMIN_PATH</code></td><td><code>booking</code></td><td>Admin URL segment</td></tr>
+    <tr><td><code>ABS_PUBLIC_PATH</code></td><td><code>book</code></td><td>Public URL segment</td></tr>
+    <tr><td><code>ABS_ACCOUNT_PATH</code></td><td><code>account</code></td><td>Customer panel segment</td></tr>
+    <tr><td><code>ABS_DEFAULT_TIMEZONE</code></td><td><code>UTC</code></td><td>Default for a new business</td></tr>
+    <tr><td><code>ABS_DEFAULT_CURRENCY</code></td><td><code>USD</code></td><td>Default for a new business</td></tr>
+    <tr><td><code>ABS_SMS_NOTIFICATIONS</code></td><td><code>false</code></td><td>Also send SMS</td></tr>
+    <tr><td><code>ABS_RATE_LIMIT_BOOKING</code></td><td><code>10</code></td><td>Bookings per IP per minute</td></tr>
+    <tr><td><code>ABS_RATE_LIMIT_SLOTS</code></td><td><code>60</code></td><td>Time searches per IP per minute</td></tr>
+  </table>
+</section>
+
+<section id="updating">
+  <h2>Updating</h2>
+  <p>Back up the database and <code>.env</code> first.</p>
+<pre><code>php artisan down
+# replace the files with the new version (keep .env and storage/)
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan abs:install
+php artisan optimize
+php artisan queue:restart
+php artisan up</code></pre>
+</section>
+
+<section id="troubleshooting">
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><th>Problem</th><th>Solution</th></tr>
+    <tr><td>"No free time" on every day</td><td>The staff member has no hours, the service is not assigned to them, or the booking window is too short.</td></tr>
+    <tr><td>E-mails are not sent</td><td>Start the queue worker and set SMTP.</td></tr>
+    <tr><td>Reminders are not sent</td><td>Add the cron entry.</td></tr>
+    <tr><td>"Invalid signature" / 403 on a booking link</td><td><code>APP_URL</code> differs from the browser address. Fix it and run <code>php artisan optimize</code>.</td></tr>
+    <tr><td>Admin pages look unstyled</td><td><code>php artisan vendor:publish --tag=metheme-assets</code> and clear the browser cache.</td></tr>
+    <tr><td>A gateway is not offered</td><td>It is switched off, the currency is not BDT (bKash/Nagad), or the payment mode is "Pay later".</td></tr>
+    <tr><td>500 error after upload</td><td>Run <code>php artisan optimize:clear</code> and check <code>storage/logs/laravel.log</code>.</td></tr>
+  </table>
+</section>
+
+<section id="faq">
+  <h2>FAQ</h2>
+  <h3>Can two people book the same doctor at the same time?</h3>
+  <p>No. The system locks the doctor's schedule while saving, so only one booking wins. The other person is asked to pick another time.</p>
+  <h3>Can I run several clinics or branches?</h3>
+  <p>Yes. Add several businesses, and branches inside each one. Staff see only the businesses they belong to.</p>
+  <h3>Which timezone is used?</h3>
+  <p>Each business has its own timezone. Times are stored in UTC and shown in the business's timezone, including daylight-saving changes.</p>
+  <h3>Can I change the colours or texts?</h3>
+  <p>Yes. Views are in <code>abs/src/resources/views</code>. Publish or copy them to customise.</p>
+  <h3>Is there a web installer?</h3>
+  <p>No. Installation is done with the commands above. This avoids a public setup page on a live site.</p>
+</section>
+
+<section id="credits">
+  <h2>Credits and support</h2>
+  <p>Author: M. Estiaque Ahmed Khan — <a href="https://mestiaque.com">mestiaque.com</a> — info@mestiaque.com</p>
+  <p>When asking for help, include your purchase code, PHP and MySQL versions, and the last lines of <code>storage/logs/laravel.log</code>.</p>
+  <p>Third-party: Laravel (MIT), Livewire (MIT), Bootstrap (MIT), FullCalendar (MIT), Luxon (MIT), Font Awesome Free (icons CC BY 4.0, code MIT).</p>
+</section>
+</main>
+
+<div id="zoom"><img alt=""></div>
+<script>
+const nav = document.getElementById('nav');
+document.getElementById('menu').onclick = () => nav.classList.toggle('open');
+nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+const zoom = document.getElementById('zoom');
+document.querySelectorAll('figure img').forEach(img => img.addEventListener('click', () => {
+  zoom.querySelector('img').src = img.src; zoom.style.display = 'flex';
+}));
+zoom.onclick = () => zoom.style.display = 'none';
+const links = [...nav.querySelectorAll('a')];
+const io = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) { links.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id)); }
+}), { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('section').forEach(s => io.observe(s));
+</script>
+</body>
+</html>

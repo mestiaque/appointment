@@ -212,6 +212,17 @@ class AuthorizationTest extends TestCase
         $this->get(route('abs.reports.export', 'appointments'))->assertRedirect(route('login'));
     }
 
+    public function test_booking_pages_send_security_headers(): void
+    {
+        [$business] = $this->bookableBusiness();
+        $owner = $this->member($business);
+
+        foreach ([route('abs.public.show', $business->slug), route('abs.public.find'), route('abs.account.login')] as $url) {
+            $this->get($url)->assertHeader('X-Frame-Options', 'SAMEORIGIN')->assertHeader('X-Content-Type-Options', 'nosniff')->assertHeader('Referrer-Policy', 'same-origin');
+        }
+        $this->actingInBusiness($owner, $business)->get(route('abs.dashboard'))->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+    }
+
     public function test_last_owner_cannot_be_removed_or_demoted(): void
     {
         [$business] = $this->bookableBusiness();

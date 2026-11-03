@@ -135,7 +135,11 @@ class ManualBooking extends Component
         $offers = $finder->offers($business, $this->serviceId, null, $this->branchId ?: null);
         $selected = $this->staffChoice === 'any' ? $offers : $offers->filter(fn ($o) => (string) $o->staff->getKey() === $this->staffChoice)->values();
         $validDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->date) === 1;
-        $times = $validDate ? $finder->times($business, $selected, $this->date, $this->branchId ?: null, enforceWindow: false) : [];
+        // Staff may book without the online notice period, but never into a time that has already passed.
+        $now = CarbonImmutable::now();
+        $times = $validDate
+            ? array_values(array_filter($finder->times($business, $selected, $this->date, $this->branchId ?: null, enforceWindow: false), fn ($t) => CarbonImmutable::parse($t['start'])->greaterThan($now)))
+            : [];
 
         return view('abs::livewire.manual-booking', [
             'business' => $business,

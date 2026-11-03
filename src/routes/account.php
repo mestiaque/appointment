@@ -10,7 +10,7 @@ use ME\Abs\Http\Controllers\Account\AuthController;
 Route::group([
     'prefix' => config('abs.account_path', 'account'),
     'as' => 'abs.account.',
-    'middleware' => ['web'],
+    'middleware' => ['web', 'abs.headers'],
 ], function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -22,6 +22,7 @@ Route::group([
     // "auth" sends guests to metheme's login route; customer pages point them to the customer login instead.
     Route::middleware(['auth:web'])->group(function () {
         Route::get('/', [AccountController::class, 'dashboard'])->name('dashboard');
+        Route::get('/bookings/{reference}', [AccountController::class, 'show'])->where('reference', 'BK-[0-9A-Z]{8}')->name('booking');
         Route::get('/profile', [AccountController::class, 'profile'])->name('profile');
         Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
         Route::put('/password', [AccountController::class, 'updatePassword'])->name('password.update');

@@ -7,55 +7,63 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use ME\Abs\Enums\AppointmentStatus;
 use ME\Abs\Models\Appointment;
-use ME\Abs\Models\Business;
 
 /**
  * Customer panel: own bookings only (customer_user_id = the logged-in user).
  */
 class AccountController extends Controller
 {
+    /**
+     * "My bookings": one list with tabs. Each row opens the booking's details.
+     */
     public function dashboard(Request $request): View
     {
         $user = $request->user();
-        $mine = fn () => Appointment::query()->where('customer_user_id', $user->getKey())
-            ->with('business:id,name,slug,timezone', 'items:id,appointment_id,service_name,duration_minutes', 'staff:id,name,title', 'branch:id,name,address');
+        $tab = in_array($request->query('tab'), ['upcoming', 'past', 'cancelled'], true) ? $request->query('tab') : 'all';
+        $now = CarbonImmutable::now();
         $active = [AppointmentStatus::AwaitingPayment->value, AppointmentStatus::Pending->value, AppointmentStatus::Confirmed->value, AppointmentStatus::CheckedIn->value, AppointmentStatus::InProgress->value];
+        $closed = [AppointmentStatus::Cancelled->value, AppointmentStatus::Rejected->value, AppointmentStatus::Expired->value];
 
-        $upcoming = $mine()->whereIn('status', $active)->where('ends_at', '>', CarbonImmutable::now())->orderBy('starts_at')->limit(20)->get();
-        $history = $mine()->where(fn ($q) => $q->whereNotIn('status', $active)->orWhere('ends_at', '<=', CarbonImmutable::now()))
-            ->latest('starts_at')->paginate(10);
+        $base = fn () => Appointment::query()->where('customer_user_id', $user->getKey());
+        $query = $base()
+            ->with('business:id,name', 'items:id,appointment_id,service_name,duration_minutes', 'staff:id,name', 'branch:id,name')
+            ->when($tab === 'upcoming', fn ($q) => $q->whereIn('status', $active)->where('ends_at', '>', $now))
+            ->when($tab === 'past', fn ($q) => $q->whereNotIn('status', $closed)->where('ends_at', '<=', $now))
+            ->when($tab === 'cancelled', fn ($q) => $q->whereIn('status', $closed));
 
-        $mineIds = Appointment::query()->where('customer_user_id', $user->getKey())->select('id');
+        // Upcoming first (soonest on top), then the past (latest on top).
+        $bookings = $tab === 'upcoming'
+            ? $query->orderBy('starts_at')->paginate(15)->withQueryString()
+            : $query->orderByRaw('CASE WHEN ends_at > ? THEN 0 ELSE 1 END', [$now])->orderByRaw('CASE WHEN ends_at > ? THEN starts_at END ASC', [$now])->orderByDesc('starts_at')->paginate(15)->withQueryString();
 
         return view('abs::account.dashboard', [
             'user' => $user,
-            'next' => $upcoming->first(),
-            'upcoming' => $upcoming->slice(1)->values(),
-            'history' => $history,
-            'stats' => [
-                'upcoming' => $upcoming->count(),
-                'visits' => Appointment::query()->where('customer_user_id', $user->getKey())->where('status', AppointmentStatus::Completed->value)->count(),
-                'businesses' => Appointment::query()->where('customer_user_id', $user->getKey())->distinct()->count('business_id'),
+            'tab' => $tab,
+            'bookings' => $bookings,
+            'counts' => [
+                'all' => $base()->count(),
+                'upcoming' => $base()->whereIn('status', $active)->where('ends_at', '>', $now)->count(),
+                'past' => $base()->whereNotIn('status', $closed)->where('ends_at', '<=', $now)->count(),
+                'cancelled' => $base()->whereIn('status', $closed)->count(),
             ],
-            // Unpaid balances of active bookings.
-            'due' => $upcoming->filter(fn ($a) => $a->outstandingMinor() > 0)->values(),
-            // Prescriptions and reports shared on any of the customer's bookings.
-            'documents' => \ME\Models\Media::query()
-                ->where('mediable_type', (new Appointment)->getMorphClass())
-                ->whereIn('mediable_id', $mineIds)
-                ->where('collection', 'documents')
-                ->latest('id')->limit(6)->get(),
-            // "Book again": the same service with the same person, most recent first.
-            'again' => Appointment::query()->where('customer_user_id', $user->getKey())
-                ->with('business:id,name,slug', 'staff:id,name,title', 'items:id,appointment_id,service_name')
-                ->latest('starts_at')->limit(30)->get()
-                ->unique(fn ($a) => $a->staff_id.'-'.$a->service_id)->take(4)->values(),
         ]);
+    }
+
+    /**
+     * Details of one of the customer's own bookings (the full booking page: payment, documents, print, changes).
+     */
+    public function show(Request $request, string $reference): RedirectResponse
+    {
+        $appointment = Appointment::query()->where('booking_reference', $reference)
+            ->where('customer_user_id', $request->user()->getKey())->firstOrFail();
+
+        return redirect()->to(URL::temporarySignedRoute('abs.public.manage', now()->addHours(2), ['reference' => $appointment->booking_reference]));
     }
 
     public function profile(Request $request): View

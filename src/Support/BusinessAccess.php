@@ -19,9 +19,21 @@ class BusinessAccess
     /** @var array<string, ?BusinessMember> */
     private array $membershipCache = [];
 
+    /** @var array<string, bool> metheme's hasPermission() queries the database on every call; remember answers per request. */
+    private array $permissionCache = [];
+
+    public function hasPermission(?User $user, string $permission): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->permissionCache[$user->getKey().':'.$permission] ??= (bool) $user->hasPermission($permission);
+    }
+
     public function isPrivileged(?User $user): bool
     {
-        return $user !== null && $user->hasPermission('abs_business.all');
+        return $this->hasPermission($user, 'abs_business.all');
     }
 
     public function membership(?User $user, Business $business): ?BusinessMember
@@ -51,7 +63,7 @@ class BusinessAccess
 
     public function can(?User $user, Business $business, string $permission): bool
     {
-        if (! $user || ! $user->hasPermission($permission)) {
+        if (! $this->hasPermission($user, $permission)) {
             return false;
         }
 

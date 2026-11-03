@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use ME\Abs\Database\Factories\UserFactory;
+use ME\Abs\Enums\AppointmentStatus;
 use ME\Abs\Models\Appointment;
 use ME\Abs\Support\CustomerAccount;
 use ME\Abs\Tests\TestCase;
@@ -81,22 +82,37 @@ class AccountTest extends TestCase
         $this->get('/admin/booking')->assertRedirect(route('login'));
     }
 
-    public function test_dashboard_shows_only_own_bookings(): void
+    public function test_my_bookings_lists_only_own_bookings_with_tabs_and_details(): void
     {
         CarbonImmutable::setTestNow('2026-11-01 00:00:00');
         [$business, $service, $staff] = $this->bookableBusiness();
         $me = UserFactory::new()->create();
         $other = UserFactory::new()->create();
-        $mine = Appointment::factory()->at($this->utc('2026-11-05 10:00'))->create(['staff_id' => $staff->id, 'business_id' => $business->id, 'customer_user_id' => $me->id]);
-        $mine->items()->create(['service_name' => 'My Unique Service', 'duration_minutes' => 30, 'unit_price_minor' => 0, 'line_total_minor' => 0]);
-        $theirs = Appointment::factory()->at($this->utc('2026-11-06 10:00'))->create(['staff_id' => $staff->id, 'business_id' => $business->id, 'customer_user_id' => $other->id]);
-        $theirs->items()->create(['service_name' => 'Someone Else Service', 'duration_minutes' => 30, 'unit_price_minor' => 0, 'line_total_minor' => 0]);
+        $make = function ($user, string $at, string $name, string $status = 'confirmed') use ($business, $staff) {
+            $a = Appointment::factory()->status(AppointmentStatus::from($status))->at($this->utc($at))
+                ->create(['staff_id' => $staff->id, 'business_id' => $business->id, 'customer_user_id' => $user->id]);
+            $a->items()->create(['service_name' => $name, 'duration_minutes' => 30, 'unit_price_minor' => 0, 'line_total_minor' => 0]);
 
-        $this->actingAs($me)->get(route('abs.account.dashboard'))
-            ->assertOk()
-            ->assertSee('My Unique Service')
-            ->assertDontSee('Someone Else Service')
-            ->assertSee('Next appointment');
+            return $a;
+        };
+        $upcoming = $make($me, '2026-11-05 10:00', 'Upcoming Unique Service');
+        $make($me, '2026-10-20 10:00', 'Past Unique Service', 'completed');
+        $make($me, '2026-11-06 10:00', 'Cancelled Unique Service', 'cancelled');
+        $theirs = $make($other, '2026-11-06 10:00', 'Someone Else Service');
+
+        $this->actingAs($me);
+        $this->get(route('abs.account.dashboard'))->assertOk()
+            ->assertSeeInOrder(['Upcoming Unique Service', 'Past Unique Service'])
+            ->assertDontSee('Someone Else Service');
+        $this->get(route('abs.account.dashboard', ['tab' => 'upcoming']))->assertSee('Upcoming Unique Service')->assertDontSee('Past Unique Service')->assertDontSee('Cancelled Unique Service');
+        $this->get(route('abs.account.dashboard', ['tab' => 'past']))->assertSee('Past Unique Service')->assertDontSee('Upcoming Unique Service');
+        $this->get(route('abs.account.dashboard', ['tab' => 'cancelled']))->assertSee('Cancelled Unique Service')->assertDontSee('Past Unique Service');
+
+        // Details: own booking opens, someone else's does not.
+        $details = $this->get(route('abs.account.booking', $upcoming->booking_reference));
+        $details->assertRedirect();
+        $this->get($details->headers->get('Location'))->assertOk()->assertSee($upcoming->booking_reference)->assertSee('My bookings');
+        $this->get(route('abs.account.booking', $theirs->booking_reference))->assertNotFound();
     }
 
     public function test_profile_and_password_update(): void

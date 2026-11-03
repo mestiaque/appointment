@@ -11,6 +11,9 @@
 @endphp
 
 @section('content')
+@if(auth()->id() && auth()->id() === $a->customer_user_id)
+    <a href="{{ route('abs.account.dashboard') }}" class="abs-back mb-3"><span class="arr"><i class="fas fa-arrow-left"></i></span>My bookings</a>
+@endif
 <div class="row g-3">
     <div class="col-lg-7">
         <div class="abs-card p-4 mb-3">

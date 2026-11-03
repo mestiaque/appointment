@@ -23,6 +23,7 @@ use ME\Abs\Console\SendRemindersCommand;
 use ME\Abs\Http\Middleware\BusinessPermission;
 use ME\Abs\Http\Middleware\KeepCustomersOutOfAdmin;
 use ME\Abs\Http\Middleware\RequireBusiness;
+use ME\Abs\Http\Middleware\SecurityHeaders;
 use ME\Abs\Listeners\RecordNotificationDelivery;
 use ME\Abs\Livewire\AppointmentTable;
 use ME\Abs\Livewire\BookingWizard;
@@ -72,6 +73,7 @@ class AbsServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('abs.business', RequireBusiness::class);
         $router->aliasMiddleware('abs.can', BusinessPermission::class);
+        $router->aliasMiddleware('abs.headers', SecurityHeaders::class);
         // Guests on customer pages go to the customer login (admin pages keep metheme's /login);
         // signed-in visitors of the customer login/register go to their panel.
         $account = trim((string) config('abs.account_path', 'account'), '/');

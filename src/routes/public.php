@@ -12,7 +12,7 @@ use ME\Abs\Http\Controllers\Front\WebhookController;
 Route::group([
     'prefix' => config('abs.public_path', 'book'),
     'as' => 'abs.public.',
-    'middleware' => ['web'],
+    'middleware' => ['web', 'abs.headers'],
 ], function () {
     Route::get('/', [BookingController::class, 'directory'])->name('directory');
     Route::get('/find', [LookupController::class, 'show'])->name('find');
