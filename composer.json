@@ -1,0 +1,40 @@
+{
+    "name": "mestiaque/abs",
+    "description": "Abs module for Laravel (by M. Estiaque Ahmed Khan)",
+    "type": "library",
+    "keywords": [
+        "Laravel",
+        "Abs",
+        "Estiaque"
+    ],
+    "authors": [
+        {
+            "name": "M. Estiaque Ahmed Khan",
+            "email": "info@mestiaque.com",
+            "homepage": "https://mestiaque.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ME\\Abs\\Database\\Factories\\": "src/database/factories/",
+            "ME\\Abs\\Database\\Seeders\\": "src/database/seeders/",
+            "ME\\Abs\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ME\\Abs\\AbsServiceProvider"
+            ]
+        }
+    },
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.0",
+        "livewire/livewire": "^4.4",
+        "mestiaque/metheme": "*"
+    }
+}
